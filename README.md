@@ -1,6 +1,6 @@
 # Disaster Response Pipeline Project
 
-### Introduction
+## Introduction
 This project builds a web app which classifiies a message sent during a disaster.  The project is split into three main steps:
 
 ### 1. ETL process
@@ -18,7 +18,7 @@ This is performed using the file `model/train_classifier.py`
 Using flask, we run the model and deploy in the website.
 
 
-### Instructions:
+## Instructions:
 1. Run the following commands in the project's root directory to set up your database and model.
 
     - To run ETL pipeline that cleans data and stores in database
