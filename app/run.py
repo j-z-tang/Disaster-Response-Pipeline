@@ -8,7 +8,8 @@ from nltk.tokenize import word_tokenize
 from flask import Flask
 from flask import render_template, request, jsonify
 from plotly.graph_objs import Bar
-from sklearn.externals import joblib
+# from sklearn.externals import joblib
+import joblib
 from sqlalchemy import create_engine
 
 
@@ -26,26 +27,34 @@ def tokenize(text):
     return clean_tokens
 
 # load data
-engine = create_engine('sqlite:///../data/YourDatabaseName.db')
-df = pd.read_sql_table('YourTableName', engine)
+engine = create_engine('sqlite:///../data/DisasterResponse.db')
+df = pd.read_sql_table('messages', engine)
 
 # load model
-model = joblib.load("../models/your_model_name.pkl")
+model = joblib.load("../models/classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model
 @app.route('/')
 @app.route('/index')
 def index():
-    
+
     # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
+
+    # First visualisation - distribution of message genres - direct, news, social
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
-    
+
+    # Second visualisation - total categories
+    total_category = df.drop(columns=['id', 'message', 'original', 'genre'], axis=1).sum().sort_values(ascending=False).head(10)
+
+    # Third visualisation - histogram of text length
+    df['text length'] = df['message'].apply(lambda x: len(x.split()))
+    histogram = df[df['text length'] < 100].groupby('text length').count()['id']
+
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
+        # 1st Visualisation
         {
             'data': [
                 Bar(
@@ -63,7 +72,47 @@ def index():
                     'title': "Genre"
                 }
             }
+        },
+        # 2nd Visualisation
+        {
+            'data': [
+                Bar(
+                    x=total_category.index,
+                    y=total_category.values
+                )
+            ],
+
+            'layout': {
+                'title': 'Total Messages Count for Top 10 Categories',
+                'yaxis': {
+                    'title': "Total"
+                },
+                'xaxis': {
+                    'title': "Category"
+                }
+            }
+        },
+
+        # 3rd Visualisation
+        {
+            'data': [
+                Bar(
+                    x=histogram.index,
+                    y=histogram.values
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Messages Length',
+                'yaxis': {
+                    'title': "Total Messages"
+                },
+                'xaxis': {
+                    'title': "Total Words"
+                }
+            }
         }
+
     ]
     
     # encode plotly graphs in JSON
